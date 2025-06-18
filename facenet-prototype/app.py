@@ -174,17 +174,13 @@ if menu == "People":
             b64 = base64.b64encode(buf.getvalue()).decode()
 
             with cols[idx % 5]:
-                st.markdown(f'''
-                    <div class="person-box">
-                        <img src="data:image/jpeg;base64,{b64}" alt="{display_name}" />
-                        <strong>{display_name}</strong>
-                        <span>Photos: {photo_count}</span>
-                        <button class="person-btn" onclick="document.getElementById('btn_{idx}').click()"></button>
-                    </div>
-                ''', unsafe_allow_html=True)
-
-                if st.button("", key=f"btn_{idx}"):
+                if st.button(
+                    label=f"🧑‍🦱 {display_name}\nPhotos: {photo_count}",
+                    key=f"person_btn_{idx}",
+                    help="Click to view this person",
+                ):
                     select_person(idx)
+                st.image(f"data:image/jpeg;base64,{b64}", width=80)
 
 elif menu == "All Files":
     st.title("📂 All Files")
