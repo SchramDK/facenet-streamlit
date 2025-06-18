@@ -77,6 +77,10 @@ st.sidebar.radio(
 
 menu = st.session_state.menu
 
+if st.session_state.get("person") is None and "person_select" in st.experimental_get_query_params():
+    st.session_state.person = int(st.experimental_get_query_params()["person_select"][0]) + 1
+    st.session_state.menu = "People"
+
 if menu == "People":
     st.title("🧑 Detected People in Uploaded Images")
 
@@ -174,13 +178,15 @@ if menu == "People":
             b64 = base64.b64encode(buf.getvalue()).decode()
 
             with cols[idx % 5]:
-                if st.button(
-                    label=f"🧑‍🦱 {display_name}\nPhotos: {photo_count}",
-                    key=f"person_btn_{idx}",
-                    help="Click to view this person",
-                ):
-                    select_person(idx)
-                st.image(f"data:image/jpeg;base64,{b64}", width=80)
+                st.markdown(f"""
+                    <form method="post">
+                        <button name="person_select" value="{idx}" class="person-box" type="submit">
+                            <img src="data:image/jpeg;base64,{b64}" alt="{display_name}" />
+                            <strong>{display_name}</strong>
+                            <span>Photos: {photo_count}</span>
+                        </button>
+                    </form>
+                """, unsafe_allow_html=True)
 
 elif menu == "All Files":
     st.title("📂 All Files")
