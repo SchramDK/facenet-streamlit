@@ -54,9 +54,13 @@ else:
 menu = st.session_state.menu
 selected_person = st.session_state.person
 
-st.sidebar.markdown("## Navigation")
 options = ["All Files", "People"]
-menu_selection = st.sidebar.radio("Select View", options=options, index=options.index(menu) if menu in options else 0, key="menu_radio")
+with st.sidebar.expander("Navigation", expanded=True):
+    st.markdown(
+        "<style>.streamlit-expanderHeader {pointer-events: none;}</style>",
+        unsafe_allow_html=True,
+    )
+    menu_selection = st.radio("Select View", options=options, index=options.index(menu) if menu in options else 0, key="menu_radio")
 
 if menu_selection != st.session_state.menu:
     st.session_state.menu = menu_selection
