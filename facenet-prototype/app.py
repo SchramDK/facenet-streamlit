@@ -77,8 +77,8 @@ st.sidebar.radio(
 
 menu = st.session_state.menu
 
-if st.session_state.get("person") is None and "person_select" in st.experimental_get_query_params():
-    st.session_state.person = int(st.experimental_get_query_params()["person_select"][0]) + 1
+if st.session_state.get("person") is None and "person_select" in st.query_params:
+    st.session_state.person = int(st.query_params["person_select"][0]) + 1
     st.session_state.menu = "People"
 
 if menu == "People":
