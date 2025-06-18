@@ -7,7 +7,9 @@ from facenet_pytorch import MTCNN, InceptionResnetV1
 import base64
 from io import BytesIO
 
-# CSS styling til personbokse
+st.set_page_config(page_title="FaceNet Viewer", layout="wide")
+
+# CSS for styling
 st.markdown("""
 <style>
 .person-box {
@@ -16,40 +18,19 @@ st.markdown("""
     align-items: center;
     justify-content: center;
     height: 175px;
-    width: 140px;
     border: 1px solid #ddd;
-    border-radius: 8px;
     padding: 10px;
+    box-sizing: border-box;
+    border-radius: 8px;
     margin-bottom: 15px;
-    cursor: pointer;
-    user-select: none;
-    position: relative;
+    text-align: center;
 }
 .person-box img {
     width: 80px;
     height: 80px;
-    border-radius: 50%;
     object-fit: cover;
+    border-radius: 50%;
     margin-bottom: 10px;
-}
-.person-box strong {
-    text-align: center;
-    display: block;
-}
-.person-box span {
-    color: gray;
-    text-align: center;
-    display: block;
-}
-/* Gør knappen usynlig men klikbar */
-.person-btn {
-    position: absolute;
-    top: 0; left: 0; width: 100%; height: 100%;
-    opacity: 0;
-    border: none;
-    cursor: pointer;
-    background: transparent;
-    z-index: 1;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -59,27 +40,30 @@ if "menu" not in st.session_state:
 if "person" not in st.session_state:
     st.session_state.person = None
 
-def set_menu():
-    st.session_state.menu = st.session_state.menu_radio
+query_params = st.query_params
+query_menu = query_params.get("menu")
+query_person = query_params.get("person")
+
+if query_menu:
+    st.session_state.menu = query_menu
+if query_person and query_person.isdigit():
+    st.session_state.person = int(query_person)
+else:
     st.session_state.person = None
 
-def select_person(idx):
-    st.session_state.person = idx + 1
-    st.session_state.menu = "People"
+menu = st.session_state.menu
+selected_person = st.session_state.person
 
-st.sidebar.radio(
-    "Navigation",
-    ["All Files", "People"],
-    index=["All Files", "People"].index(st.session_state.menu),
-    key="menu_radio",
-    on_change=set_menu,
-)
+st.sidebar.markdown("## Navigation")
+options = ["All Files", "People"]
+menu_selection = st.sidebar.radio("Select View", options=options, index=options.index(menu) if menu in options else 0, key="menu_radio")
+
+if menu_selection != st.session_state.menu:
+    st.session_state.menu = menu_selection
+    st.query_params["menu"] = menu_selection
+    st.rerun()
 
 menu = st.session_state.menu
-
-if st.session_state.get("person") is None and "person_select" in st.query_params:
-    st.session_state.person = int(st.query_params["person_select"][0]) + 1
-    st.session_state.menu = "People"
 
 if menu == "People":
     st.title("🧑 Detected People in Uploaded Images")
@@ -134,7 +118,6 @@ if menu == "People":
 
     faces_by_group = detect_faces_grouped(image_files)
 
-    selected_person = st.session_state.person
     if selected_person is not None and 1 <= selected_person <= len(faces_by_group):
         idx = selected_person - 1
         group_faces = faces_by_group[idx]
@@ -155,7 +138,9 @@ if menu == "People":
         """, unsafe_allow_html=True)
 
         if st.button("⬅ Back to overview"):
-            st.session_state.person = None
+            st.query_params["menu"] = "People"
+            st.query_params["person"] = None
+            st.rerun()
 
         unique_files = sorted(set([src_file for (_, src_file) in group_faces]))
         st.markdown("### Photo Gallery")
@@ -178,14 +163,15 @@ if menu == "People":
             b64 = base64.b64encode(buf.getvalue()).decode()
 
             with cols[idx % 5]:
+                person_link = f"/?menu=People&person={idx + 1}"
                 st.markdown(f"""
-                    <form method="post">
-                        <button name="person_select" value="{idx}" class="person-box" type="submit">
-                            <img src="data:image/jpeg;base64,{b64}" alt="{display_name}" />
-                            <strong>{display_name}</strong>
-                            <span>Photos: {photo_count}</span>
-                        </button>
-                    </form>
+                <a href="{person_link}" style="text-decoration: none;" target="_self">
+                    <div class="person-box">
+                        <img src="data:image/jpeg;base64,{b64}" alt="{display_name}" />
+                        <strong>{display_name}</strong>
+                        <span style="color: gray;">Photos: {photo_count}</span>
+                    </div>
+                </a>
                 """, unsafe_allow_html=True)
 
 elif menu == "All Files":
