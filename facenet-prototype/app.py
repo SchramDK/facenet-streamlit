@@ -81,7 +81,7 @@ if menu == "People":
     else:
         image_files = []
 
-    @st.cache_resource
+    @st.cache_resource(show_spinner="Detecting faces...")
     def detect_faces_grouped(image_files):
         faces_by_group = []
         embeddings = []
@@ -120,7 +120,9 @@ if menu == "People":
 
         return faces_by_group
 
-    faces_by_group = detect_faces_grouped(image_files)
+    if "faces_by_group" not in st.session_state:
+        st.session_state.faces_by_group = detect_faces_grouped(image_files)
+    faces_by_group = st.session_state.faces_by_group
 
     if selected_person is not None and 1 <= selected_person <= len(faces_by_group):
         idx = selected_person - 1
@@ -151,7 +153,9 @@ if menu == "People":
         gallery_cols = st.columns(4)
         for i, file in enumerate(unique_files):
             full_path = os.path.join("uploads", file)
-            gallery_cols[i % 4].image(full_path, caption=file, use_container_width=True)
+            image = Image.open(full_path)
+            image.thumbnail((800, 800))  # Begræns billedstørrelse
+            gallery_cols[i % 4].image(image, caption=file, use_container_width=True)
 
     else:
         st.markdown("## People Overview")
