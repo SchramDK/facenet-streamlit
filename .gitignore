@@ -1,0 +1,14 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+
+# Virtual envs
+venv/
+venv39fixed/
+
+# OS
+.DS_Store
+
+# Streamlit
+*.streamlit/
