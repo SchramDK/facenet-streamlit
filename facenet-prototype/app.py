@@ -212,6 +212,6 @@ elif menu == "All Files":
             with col2:
                 if st.button(f"🗑 Delete", key=f"delete_{file}"):
                     os.remove(file_path)
-                    st.experimental_rerun()
+                    st.rerun()
     else:
         st.info("No files uploaded yet.")
