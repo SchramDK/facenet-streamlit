@@ -9,8 +9,7 @@ from io import BytesIO
 
 st.set_page_config(page_title="FaceNet Viewer", layout="wide")
 
-# CSS for styling
-st.markdown("""
+css = """
 <style>
 .person-box {
     display: flex;
@@ -33,7 +32,21 @@ st.markdown("""
     margin-bottom: 10px;
 }
 </style>
-""", unsafe_allow_html=True)
+"""
+st.markdown(css, unsafe_allow_html=True)
+
+def get_image_files():
+    if os.path.exists("uploads"):
+        return [f for f in os.listdir("uploads") if f.lower().endswith((".jpg", ".jpeg", ".png"))]
+    return []
+
+def image_to_base64(image):
+    buf = BytesIO()
+    image.save(buf, format="JPEG")
+    return base64.b64encode(buf.getvalue()).decode()
+
+def upload_path(filename):
+    return os.path.join("uploads", filename)
 
 if "menu" not in st.session_state:
     st.session_state.menu = "All Files"
@@ -60,12 +73,12 @@ with st.sidebar.expander("Navigation", expanded=True):
         "<style>.streamlit-expanderHeader {pointer-events: none;}</style>",
         unsafe_allow_html=True,
     )
-    menu_selection = st.radio("Select View", options=options, index=options.index(menu) if menu in options else 0, key="menu_radio")
+    menu_selection = st.radio("Select View", options=options, index=options.index(st.session_state.menu), key="menu_radio")
+    if menu_selection != st.session_state.menu:
+        st.query_params.clear()
+        st.query_params["menu"] = menu_selection
+        st.rerun()
 
-if menu_selection != st.session_state.menu:
-    st.session_state.menu = menu_selection
-    st.query_params["menu"] = menu_selection
-    st.rerun()
 
 menu = st.session_state.menu
 
@@ -75,19 +88,15 @@ if menu == "People":
     mtcnn = MTCNN(image_size=160, margin=0)
     resnet = InceptionResnetV1(pretrained='vggface2').eval()
 
-    if os.path.exists("uploads"):
-        file_list = os.listdir("uploads")
-        image_files = [f for f in file_list if f.lower().endswith((".jpg", ".jpeg", ".png"))]
-    else:
-        image_files = []
+    image_files = get_image_files()
 
-    @st.cache_resource
+    @st.cache_resource(show_spinner="Detecting faces...")
     def detect_faces_grouped(image_files):
         faces_by_group = []
         embeddings = []
 
         for file in image_files:
-            path = os.path.join("uploads", file)
+            path = upload_path(file)
             image = Image.open(path).convert('RGB')
             boxes, _ = mtcnn.detect(image)
             if boxes is None or len(boxes) == 0:
@@ -120,16 +129,16 @@ if menu == "People":
 
         return faces_by_group
 
-    faces_by_group = detect_faces_grouped(image_files)
+    if "faces_by_group" not in st.session_state:
+        st.session_state.faces_by_group = detect_faces_grouped(image_files)
+    faces_by_group = st.session_state.faces_by_group
 
     if selected_person is not None and 1 <= selected_person <= len(faces_by_group):
         idx = selected_person - 1
         group_faces = faces_by_group[idx]
 
         profile_face = group_faces[0][0]
-        buf = BytesIO()
-        profile_face.save(buf, format="JPEG")
-        b64 = base64.b64encode(buf.getvalue()).decode()
+        b64 = image_to_base64(profile_face)
 
         st.markdown(f"""
         <div style="display: flex; align-items: center; gap: 20px; margin-bottom: 20px; width: 100%;">
@@ -142,16 +151,18 @@ if menu == "People":
         """, unsafe_allow_html=True)
 
         if st.button("⬅ Back to overview"):
+            st.query_params.clear()
             st.query_params["menu"] = "People"
-            st.query_params["person"] = None
             st.rerun()
 
         unique_files = sorted(set([src_file for (_, src_file) in group_faces]))
         st.markdown("### Photo Gallery")
         gallery_cols = st.columns(4)
         for i, file in enumerate(unique_files):
-            full_path = os.path.join("uploads", file)
-            gallery_cols[i % 4].image(full_path, caption=file, use_container_width=True)
+            full_path = upload_path(file)
+            image = Image.open(full_path)
+            image.thumbnail((800, 800))  # Begræns billedstørrelse
+            gallery_cols[i % 4].image(image, caption=file, use_container_width=True)
 
     else:
         st.markdown("## People Overview")
@@ -162,9 +173,7 @@ if menu == "People":
             photo_count = len(group_faces)
             display_name = f"Person {idx+1}"
 
-            buf = BytesIO()
-            profile_face.save(buf, format="JPEG")
-            b64 = base64.b64encode(buf.getvalue()).decode()
+            b64 = image_to_base64(profile_face)
 
             with cols[idx % 5]:
                 person_link = f"/?menu=People&person={idx + 1}"
@@ -178,14 +187,17 @@ if menu == "People":
                 </a>
                 """, unsafe_allow_html=True)
 
-elif menu == "All Files":
+if menu == "All Files":
+    st.query_params.clear()
+    st.query_params["menu"] = "All Files"
+
     st.title("📂 All Files")
 
     uploaded_files = st.file_uploader("Upload files", accept_multiple_files=True)
     if uploaded_files:
         os.makedirs("uploads", exist_ok=True)
         for file in uploaded_files:
-            file_path = os.path.join("uploads", file.name)
+            file_path = upload_path(file.name)
             with open(file_path, "wb") as f:
                 f.write(file.getbuffer())
         st.success(f"{len(uploaded_files)} file(s) uploaded.")
@@ -194,7 +206,7 @@ elif menu == "All Files":
     if os.path.exists("uploads"):
         file_list = os.listdir("uploads")
         for file in file_list:
-            file_path = os.path.join("uploads", file)
+            file_path = upload_path(file)
             col1, col2 = st.columns([3, 1])
             with col1:
                 if file.lower().endswith((".jpg", ".jpeg", ".png")):
