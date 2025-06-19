@@ -1,0 +1,48 @@
+# Python
+__pycache__/
+*.py[cod]
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+
+# Jupyter
+.ipynb_checkpoints
+
+# Virtual environments
+venv/
+env/
+.venv/
+ENV/
+env.bak/
+
+# macOS
+.DS_Store
+
+# VSCode
+.vscode/
+
+# Streamlit
+.streamlit/
+
+# Model & Torch data
+*.pth
+*.pt
+*.h5
+*.ckpt
+*.onnx
+
+# Large data
+*.zip
+*.tar.gz
+*.dylib
+*.whl
+
+# Logs
+*.log
+
+# GitHub LFS-størrelsesgrænse
+*.dylib
+*.npy
+*.npz
