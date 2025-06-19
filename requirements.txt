@@ -7,10 +7,10 @@ torchvision==0.17.2
 facenet-pytorch @ git+https://github.com/timesler/facenet-pytorch.git@787da06156087cd6b616fe6608213722bddc30cd
 
 # InsightFace and ONNX Runtime
-insightface==0.7.3
+insightface @ git+https://github.com/deepinsight/insightface.git@v0.7.3
 mxnet==1.9.1
 onnxruntime>=1.14.1
-opencv-python-headless==4.11.0.86
+opencv-python-headless==4.11.0
 
 # Core imaging and data
 numpy>=1.26.4
