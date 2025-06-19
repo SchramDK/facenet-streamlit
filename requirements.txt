@@ -8,7 +8,7 @@ facenet-pytorch @ git+https://github.com/timesler/facenet-pytorch.git@787da06156
 
 # InsightFace and ONNX Runtime
 insightface==0.7.3
-onnxruntime-silicon==1.16.3   # Use onnxruntime-silicon for Apple Silicon; change to onnxruntime>=1.14.1 if on Intel
+onnxruntime>=1.14.1
 opencv-python-headless==4.11.0.86
 
 # Core imaging and data
