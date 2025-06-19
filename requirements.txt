@@ -8,6 +8,7 @@ facenet-pytorch @ git+https://github.com/timesler/facenet-pytorch.git@787da06156
 
 # InsightFace and ONNX Runtime
 insightface==0.7.3
+mxnet==1.9.1
 onnxruntime>=1.14.1
 opencv-python-headless==4.11.0.86
 
