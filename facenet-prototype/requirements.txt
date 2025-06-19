@@ -1,9 +1,16 @@
+# Streamlit app
 streamlit==1.46.0
+
+# PyTorch & FaceNet
 torch==2.2.2
 torchvision==0.17.2
 facenet-pytorch @ git+https://github.com/timesler/facenet-pytorch.git@787da06156087cd6b616fe6608213722bddc30cd
+
+# InsightFace and ONNX Runtime
 insightface==0.7.3
-onnxruntime>=1.14.1
-opencv-python-headless>=4.7.0
+onnxruntime-silicon==1.16.3   # Use onnxruntime-silicon for Apple Silicon; change to onnxruntime>=1.14.1 if on Intel
+opencv-python-headless==4.11.0.86
+
+# Core imaging and data
 numpy>=1.26.4
 Pillow>=10.2.0
