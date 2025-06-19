@@ -1,4 +1,0 @@
-streamlit
-torch
-facenet-pytorch
-Pillow
